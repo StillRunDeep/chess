@@ -9,6 +9,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化AI
     const ai = new ChessAI('medium');
     
+    // 胜率更新 UI 处理
+    const winRateText = document.getElementById('win-rate-text');
+    const winRateBar = document.getElementById('win-rate-bar');
+    const mateText = document.getElementById('mate-text');
+    
+    ai.onEvaluationUpdate = function(evalData) {
+        winRateText.textContent = evalData.winRate + '%';
+        winRateBar.style.width = evalData.winRate + '%';
+        
+        if (evalData.type === 'mate') {
+            mateText.style.display = 'inline';
+            if (evalData.score > 0) {
+                mateText.textContent = `(白方 ${evalData.score} 步将杀)`;
+            } else if (evalData.score < 0) {
+                mateText.textContent = `(黑方 ${Math.abs(evalData.score)} 步将杀)`;
+            } else {
+                mateText.textContent = `(已被将杀)`;
+            }
+        } else {
+            mateText.style.display = 'none';
+        }
+    };
+    
     // 初始化棋盘UI
     const boardElement = document.getElementById('chessboard');
     const chessboard = new ChessboardUI(boardElement, {
@@ -20,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 游戏状态
-    let gameMode = 'two-player'; // 'two-player' 或 'ai'
     let selectedPiece = null;
     let legalMoves = [];
     let isAIThinking = false;
@@ -29,11 +51,32 @@ document.addEventListener('DOMContentLoaded', function() {
     updateUI();
     
     // 设置事件监听器
-    document.getElementById('two-player-mode').addEventListener('click', setTwoPlayerMode);
-    document.getElementById('ai-mode').addEventListener('click', setAIMode);
     document.getElementById('new-game').addEventListener('click', newGame);
     document.getElementById('undo-move').addEventListener('click', undoMove);
     document.getElementById('play-again').addEventListener('click', newGame);
+    document.getElementById('difficulty-select').addEventListener('change', function(e) {
+        ai.setDifficulty(e.target.value);
+    });
+    
+    // 背景音乐控制
+    const bgmAudio = document.getElementById('bgm-audio');
+    const bgmToggle = document.getElementById('bgm-toggle');
+    let isBgmPlaying = false;
+    
+    bgmToggle.addEventListener('click', function() {
+        if (isBgmPlaying) {
+            bgmAudio.pause();
+            bgmToggle.textContent = '🎵 开启音乐';
+            isBgmPlaying = false;
+        } else {
+            bgmAudio.play().then(() => {
+                bgmToggle.textContent = '🎵 关闭音乐';
+                isBgmPlaying = true;
+            }).catch(err => {
+                console.error("无法播放背景音乐:", err);
+            });
+        }
+    });
     
     // 设置升变模态框事件
     setupPromotionModal();
@@ -48,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果AI正在思考，不允许操作
         if (isAIThinking) return;
         
-        // 如果是AI模式且当前是AI的回合，不允许操作
-        if (gameMode === 'ai' && engine.currentPlayer === 'b') return;
+        // 如果当前是AI的回合，不允许操作
+        if (engine.currentPlayer === 'b') return;
         
         // 检查是否是当前玩家的棋子
         const pieceColor = engine.getPieceColor(piece);
@@ -86,8 +129,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果AI正在思考，不允许操作
         if (isAIThinking) return;
         
-        // 如果是AI模式且当前是AI的回合，不允许操作
-        if (gameMode === 'ai' && engine.currentPlayer === 'b') return;
+        // 如果当前是AI的回合，不允许操作
+        if (engine.currentPlayer === 'b') return;
         
         // 如果没有选中棋子，不做任何处理
         if (!selectedPiece) return;
@@ -126,8 +169,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果AI正在思考，不允许操作
         if (isAIThinking) return false;
         
-        // 如果是AI模式且当前是AI的回合，不允许操作
-        if (gameMode === 'ai' && engine.currentPlayer === 'b') return false;
+        // 如果当前是AI的回合，不允许操作
+        if (engine.currentPlayer === 'b') return false;
         
         // 检查移动是否合法
         if (!engine.isValidMove(fromRow, fromCol, toRow, toCol)) {
@@ -170,9 +213,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return true;
             }
             
-            // 如果是AI模式且轮到AI走棋
-            if (gameMode === 'ai' && engine.currentPlayer === 'b') {
+            // 如果轮到AI走棋
+            if (engine.currentPlayer === 'b') {
                 makeAIMove();
+            } else {
+                // 如果是玩家走完，进行一次静默评估以更新胜率
+                ai.getBestMove(engine);
             }
             
             return true;
@@ -206,32 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     /**
-     * 设置双人模式
-     */
-    function setTwoPlayerMode() {
-        gameMode = 'two-player';
-        updateModeButtons();
-        newGame();
-    }
-    
-    /**
-     * 设置AI模式
-     */
-    function setAIMode() {
-        gameMode = 'ai';
-        updateModeButtons();
-        newGame();
-    }
-    
-    /**
-     * 更新模式按钮状态
-     */
-    function updateModeButtons() {
-        document.getElementById('two-player-mode').classList.toggle('active', gameMode === 'two-player');
-        document.getElementById('ai-mode').classList.toggle('active', gameMode === 'ai');
-    }
-    
-    /**
      * 开始新游戏
      */
     function newGame() {
@@ -258,11 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function undoMove() {
         if (engine.moveHistory.length === 0) return;
         
-        // 如果是AI模式，需要撤销两步（玩家的和AI的）
-        if (gameMode === 'ai') {
-            engine.undoLastMove(); // 撤销AI的移动
-            if (engine.moveHistory.length === 0) return;
-        }
+        // 需要撤销两步（玩家的和AI的）
+        engine.undoLastMove(); // 撤销AI的移动
+        if (engine.moveHistory.length === 0) return;
         
         engine.undoLastMove(); // 撤销玩家的移动
         
@@ -295,29 +313,29 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 使用setTimeout让UI有时间更新
         setTimeout(() => {
-            // 获取AI的移动
-            const bestMove = ai.getBestMove(engine);
-            
-            if (bestMove) {
-                const [fromRow, fromCol, toRow, toCol] = bestMove;
-                
-                // 执行移动
-                engine.makeMove(fromRow, fromCol, toRow, toCol);
-                
-                // 更新UI
-                updateUI();
-                
-                // 高亮显示最后一步移动
-                chessboard.highlightLastMove(fromRow, fromCol, toRow, toCol);
-                
-                // 检查游戏是否结束
-                if (engine.gameOver) {
-                    showGameOverDialog();
+            // 获取AI的移动 (现在返回 Promise)
+            Promise.resolve(ai.getBestMove(engine)).then(bestMove => {
+                if (bestMove) {
+                    const [fromRow, fromCol, toRow, toCol, promotion] = bestMove;
+                    
+                    // 执行移动
+                    engine.makeMove(fromRow, fromCol, toRow, toCol, promotion ? promotion.toUpperCase() : 'Q');
+                    
+                    // 更新UI
+                    updateUI();
+                    
+                    // 高亮显示最后一步移动
+                    chessboard.highlightLastMove(fromRow, fromCol, toRow, toCol);
+                    
+                    // 检查游戏是否结束
+                    if (engine.gameOver) {
+                        showGameOverDialog();
+                    }
                 }
-            }
-            
-            // 重置AI思考标志
-            isAIThinking = false;
+                
+                // 重置AI思考标志
+                isAIThinking = false;
+            });
         }, 100);
     }
     

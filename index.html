@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>国际象棋 - 双人对战与人机对战</title>
+    <title>国际象棋 - 人机对战</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/chessboard.css">
 </head>
@@ -12,8 +12,19 @@
         <header>
             <h1>国际象棋</h1>
             <div class="mode-selection">
-                <button id="two-player-mode" class="active">双人对战</button>
-                <button id="ai-mode">人机对战</button>
+                <span style="color: white; margin-right: 10px; font-weight: bold;">人机对战</span>
+                <select id="difficulty-select" style="padding: 10px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer; margin-right: 10px;">
+                    <option value="level1">等级 1: 极简 (深度 1)</option>
+                    <option value="level2">等级 2: 入门 (深度 2)</option>
+                    <option value="level3">等级 3: 简单 (深度 4)</option>
+                    <option value="level4" selected>等级 4: 中等 (深度 6)</option>
+                    <option value="level5">等级 5: 进阶 (深度 8)</option>
+                    <option value="level6">等级 6: 困难 (深度 12)</option>
+                    <option value="level7">等级 7: 专家 (深度 16)</option>
+                    <option value="level8">等级 8: 大师 (深度 20)</option>
+                </select>
+                <button id="bgm-toggle" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer;">🎵 开启音乐</button>
+                <audio id="bgm-audio" src="sound/bgm.mp3" loop></audio>
             </div>
         </header>
 
@@ -35,6 +46,18 @@
 
                 <div class="game-info">
                     <div id="status">白方走棋</div>
+                    
+                    <!-- 胜率显示 -->
+                    <div class="win-rate-container" style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 5px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9em; font-weight: bold;">
+                            <span>白方胜率 <span id="mate-text" style="color: #e74c3c; margin-left: 10px; display: none;"></span></span>
+                            <span id="win-rate-text">50.0%</span>
+                        </div>
+                        <div style="height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; display: flex;">
+                            <div id="win-rate-bar" style="width: 50%; background: var(--secondary-color); transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+
                     <div class="captured-pieces">
                         <div class="white-captured">白方吃子：</div>
                         <div class="black-captured">黑方吃子：</div>
