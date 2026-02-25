@@ -290,6 +290,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // 隐藏游戏结束对话框
         const gameOverModal = document.getElementById('game-over-modal');
         gameOverModal.style.display = 'none';
+        
+        // 刷新胜率
+        winRateText.textContent = '50.0%';
+        winRateBar.style.width = '50%';
+        mateText.style.display = 'none';
+        if (isEngineReady) {
+            ai.getBestMove(engine);
+        }
     }
     
     /**
@@ -300,7 +308,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 需要撤销两步（玩家的和AI的）
         engine.undoLastMove(); // 撤销AI的移动
-        if (engine.moveHistory.length === 0) return;
+        if (engine.moveHistory.length === 0) {
+            newGame();
+            return;
+        }
         
         engine.undoLastMove(); // 撤销玩家的移动
         
@@ -318,6 +329,15 @@ document.addEventListener('DOMContentLoaded', function() {
             chessboard.highlightLastMove(lastMove.from[0], lastMove.from[1], lastMove.to[0], lastMove.to[1]);
         } else {
             chessboard.clearLastMoveHighlight();
+        }
+        
+        // 刷新胜率
+        if (isEngineReady) {
+            ai.getBestMove(engine);
+        } else {
+            winRateText.textContent = '50.0%';
+            winRateBar.style.width = '50%';
+            mateText.style.display = 'none';
         }
     }
     
