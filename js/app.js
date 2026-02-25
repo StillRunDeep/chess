@@ -46,6 +46,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedPiece = null;
     let legalMoves = [];
     let isAIThinking = false;
+    let isEngineReady = false;
+    
+    // 初始化引擎状态
+    document.getElementById('status').textContent = '正在加载AI引擎...';
+    ai.onReady = function() {
+        isEngineReady = true;
+        // 如果游戏还没开始（或者没人在走棋），则更新状态
+        if (!isAIThinking) {
+            document.getElementById('status').textContent = engine.getGameStatusText();
+        }
+    };
     
     // 更新棋盘
     updateUI();
@@ -88,6 +99,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * 处理棋子点击事件
      */
     function handlePieceClick(row, col, piece) {
+        // 如果引擎未加载完成，不允许操作
+        if (!isEngineReady) return;
+        
         // 如果AI正在思考，不允许操作
         if (isAIThinking) return;
         
@@ -126,6 +140,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * 处理方格点击事件
      */
     function handleSquareClick(row, col) {
+        // 如果引擎未加载完成，不允许操作
+        if (!isEngineReady) return;
+        
         // 如果AI正在思考，不允许操作
         if (isAIThinking) return;
         
@@ -166,6 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * 处理移动事件
      */
     function handleMove(fromRow, fromCol, toRow, toCol) {
+        // 如果引擎未加载完成，不允许操作
+        if (!isEngineReady) return false;
+        
         // 如果AI正在思考，不允许操作
         if (isAIThinking) return false;
         
@@ -347,7 +367,11 @@ document.addEventListener('DOMContentLoaded', function() {
         chessboard.updateBoard(engine.board);
         
         // 更新状态文本
-        document.getElementById('status').textContent = engine.getGameStatusText();
+        if (isEngineReady) {
+            document.getElementById('status').textContent = engine.getGameStatusText();
+        } else {
+            document.getElementById('status').textContent = '正在加载AI引擎...';
+        }
         
         // 更新被吃掉的棋子
         updateCapturedPieces();

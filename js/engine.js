@@ -22,6 +22,7 @@ class ChessAI {
             
             if (line === 'uciok') {
                 this.ready = true;
+                if (this.onReady) this.onReady();
             } else if (line.startsWith('info') && line.includes('score')) {
                 this.handleEvaluation(line);
             } else if (line.startsWith('bestmove')) {
