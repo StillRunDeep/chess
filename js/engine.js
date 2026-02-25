@@ -14,6 +14,7 @@ class ChessAI {
         this.ready = false;
         this.callbacks = [];
         this.onEvaluationUpdate = null; // 胜率更新回调
+        this.sideToMove = 'w'; // 默认为白方
         
         this.worker.onmessage = (event) => {
             const line = event.data;
@@ -107,6 +108,9 @@ class ChessAI {
             
             this.callbacks.push(resolve);
             
+            // 记录当前是谁在走棋，以便正确解析胜率（Stockfish 返回的是相对于当前走棋方的分数）
+            this.sideToMove = engine.currentPlayer;
+            
             const uciMoves = this.getUciMoves(engine);
             if (uciMoves.length > 0) {
                 this.worker.postMessage(`position startpos moves ${uciMoves}`);
@@ -146,6 +150,12 @@ class ChessAI {
             } else {
                 return;
             }
+        }
+
+        // Stockfish 返回的分数是相对于当前走棋方的
+        // 如果当前是黑方走棋，我们需要对分数取反，以获得相对于白方的分数
+        if (this.sideToMove === 'b') {
+            score = -score;
         }
 
         // 计算胜率 (基于白方的胜率)
