@@ -7,7 +7,8 @@ class ChessAI {
         this.setDifficulty(difficulty);
         
         // 初始化 Stockfish Worker
-        this.worker = new Worker('js/stockfish.js');
+        // 使用相对当前页面的绝对路径解析，以防 GitHub Pages 子目录访问时缺少斜杠导致的 404 错误
+        this.worker = new Worker(new URL('js/stockfish.js', document.baseURI || window.location.href));
         this.worker.postMessage('uci');
         
         this.ready = false;
