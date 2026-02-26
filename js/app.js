@@ -234,6 +234,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // 更新UI
             updateUI();
             
+            // 如果是第一步棋且音乐未播放，则自动开启
+            if (engine.moveHistory.length === 1 && !isBgmPlaying) {
+                isBgmPlaying = true;
+                bgmToggle.textContent = '🎵 关闭音乐';
+                playCurrentAudio();
+            }
+            
             // 重置选择状态
             selectedPiece = null;
             legalMoves = [];
