@@ -190,7 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 执行移动
-        executeMove(selectedPiece[0], selectedPiece[1], row, col);
+        const [fromRow, fromCol] = selectedPiece;
+		tryMove(fromRow, fromCol, row, col);
     }
     
     /**
@@ -211,18 +212,32 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // 检查是否是兵的升变
-        const piece = engine.getPiece(fromRow, fromCol);
-        if (engine.getPieceType(piece) === 'P' && (toRow === 0 || toRow === 7)) {
-            // 显示升变选择对话框
-            showPromotionDialog(fromRow, fromCol, toRow, toCol);
-            return true;
-        }
-        
-        // 执行移动
-        return executeMove(fromRow, fromCol, toRow, toCol);
+        // 检查是否是兵的升变+执行移动
+        return tryMove(fromRow, fromCol, toRow, toCol);
     }
     
+	
+	/**
+     * 统一走子入口（含升变判断）
+     */
+	function tryMove(fromRow, fromCol, toRow, toCol, promotionPiece = null) {
+	    const piece = engine.getPiece(fromRow, fromCol);
+	    if (!piece) return false;
+	
+	    // 如果是兵到达底线且没有指定升变棋子
+	    if (
+	        engine.getPieceType(piece) === 'P' &&
+	        (toRow === 0 || toRow === 7) &&
+	        !promotionPiece
+	    ) {
+	        showPromotionDialog(fromRow, fromCol, toRow, toCol);
+	        return true;
+	    }
+	
+	    // 正常执行
+	    return executeMove(fromRow, fromCol, toRow, toCol, promotionPiece);
+	}
+	
     /**
      * 执行移动
      */
@@ -501,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 完成升变移动
                 if (promotionData) {
-                    executeMove(
+                    tryMove(
                         promotionData.fromRow, 
                         promotionData.fromCol, 
                         promotionData.toRow, 
