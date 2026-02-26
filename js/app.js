@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
         winRateText.textContent = evalData.winRate + '%';
         winRateBar.style.width = evalData.winRate + '%';
         
+        // 动态更新胜率条颜色: 0% 为红色 (Hue 0), 100% 为绿色 (Hue 120)
+        const rate = parseFloat(evalData.winRate);
+        const hue = (rate / 100) * 120;
+        winRateBar.style.backgroundColor = `hsl(${hue}, 70%, 45%)`;
+        
         if (evalData.type === 'mate') {
             mateText.style.display = 'inline';
             if (evalData.score > 0) {
@@ -72,122 +77,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 背景音乐控制
     const bgmAudio = document.getElementById('bgm-audio');
     const bgmToggle = document.getElementById('bgm-toggle');
-    const bgmSelect = document.getElementById('bgm-select');
     let isBgmPlaying = false;
-    
-    // MIDI 播放器相关
-    let audioContext = null;
-    let midiPlayer = null;
-    let pianoInst = null;
-    let isMidiReady = false;
-    let currentLoadedMidi = '';
 
-    function initMidiPlayer() {
-        if (audioContext) return Promise.resolve();
-        
-        // 第一次交互后初始化 AudioContext
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioContext = new AudioContext();
-        
-        bgmToggle.textContent = '🎵 加载音源...';
-        bgmToggle.disabled = true;
-
-        return Soundfont.instrument(audioContext, 'acoustic_grand_piano', {
-            soundfont: 'MusyngKite', 
-            format: 'mp3'
-        }).then(function (piano) {
-            pianoInst = piano;
-            midiPlayer = new MidiPlayer.Player(function(event) {
-                if (event.name === 'Note on' && event.velocity > 0) {
-                    pianoInst.play(event.noteName, audioContext.currentTime, {gain: event.velocity / 100});
-                }
-            });
-
-            // 循环播放
-            midiPlayer.on('endOfFile', function() {
-                if (isBgmPlaying) {
-                    midiPlayer.play();
-                }
-            });
-
-            isMidiReady = true;
-            bgmToggle.disabled = false;
-            
-            // 如果加载完之后还是处于要求播放的状态，则恢复文字
-            if (isBgmPlaying) {
-                bgmToggle.textContent = '🎵 关闭音乐';
-            } else {
-                bgmToggle.textContent = '🎵 开启音乐';
-            }
-        }).catch(err => {
-            console.error("加载MIDI音源失败:", err);
-            bgmToggle.textContent = '🎵 音源失败';
-            bgmToggle.disabled = false;
+    function playCurrentAudio() {
+        bgmAudio.play().catch(err => {
+            console.error("无法播放背景音乐:", err);
+            bgmToggle.textContent = '🎵 开启音乐';
+            isBgmPlaying = false;
         });
     }
 
-    function playCurrentAudio() {
-        const src = bgmSelect.value;
-        const isMidi = src.toLowerCase().endsWith('.mid');
-
-        if (isMidi) {
-            bgmAudio.pause();
-            
-            if (!audioContext) {
-                initMidiPlayer().then(() => {
-                    if (isBgmPlaying) playCurrentAudio();
-                });
-                return;
-            }
-
-            if (isMidiReady) {
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-                
-                if (currentLoadedMidi !== src) {
-                    fetch(src)
-                        .then(res => res.arrayBuffer())
-                        .then(buffer => {
-                            midiPlayer.loadArrayBuffer(buffer);
-                            currentLoadedMidi = src;
-                            if (isBgmPlaying) midiPlayer.play();
-                        })
-                        .catch(err => console.error("读取MIDI失败:", err));
-                } else {
-                    midiPlayer.play();
-                }
-            }
-        } else {
-            if (midiPlayer && midiPlayer.isPlaying()) {
-                midiPlayer.pause();
-            }
-            bgmAudio.src = src;
-            bgmAudio.play().catch(err => {
-                console.error("无法播放背景音乐:", err);
-                bgmToggle.textContent = '🎵 开启音乐';
-                isBgmPlaying = false;
-            });
-        }
-    }
-
     function pauseCurrentAudio() {
-        if (midiPlayer && midiPlayer.isPlaying()) {
-            midiPlayer.pause();
-        }
         bgmAudio.pause();
     }
-
-    bgmSelect.addEventListener('change', function(e) {
-        if (isBgmPlaying) {
-            pauseCurrentAudio();
-            playCurrentAudio();
-        } else {
-            if (midiPlayer && midiPlayer.isPlaying()) {
-                midiPlayer.stop();
-            }
-        }
-    });
 
     bgmToggle.addEventListener('click', function() {
         if (isBgmPlaying) {
@@ -406,6 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 刷新胜率
         winRateText.textContent = '50.0%';
         winRateBar.style.width = '50%';
+        winRateBar.style.backgroundColor = 'hsl(60, 70%, 45%)';
         mateText.style.display = 'none';
         if (isEngineReady) {
             ai.getBestMove(engine);
@@ -449,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             winRateText.textContent = '50.0%';
             winRateBar.style.width = '50%';
+            winRateBar.style.backgroundColor = 'hsl(60, 70%, 45%)';
             mateText.style.display = 'none';
         }
     }

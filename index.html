@@ -23,10 +23,6 @@
                     <option value="level7">等级 7: 专家 (深度 16)</option>
                     <option value="level8">等级 8: 大师 (深度 20)</option>
                 </select>
-                <select id="bgm-select" style="padding: 10px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer; margin-right: 10px;">
-                    <option value="sound/只有河南.mp3" selected>只有河南.mp3</option>
-                    <option value="sound/卡农.mid">卡农.mid</option>
-                </select>
                 <button id="bgm-toggle" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer;">🎵 开启音乐</button>
                 <audio id="bgm-audio" src="sound/只有河南.mp3" loop></audio>
             </div>
@@ -58,7 +54,7 @@
                             <span id="win-rate-text">50.0%</span>
                         </div>
                         <div style="height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; display: flex;">
-                            <div id="win-rate-bar" style="width: 50%; background: var(--secondary-color); transition: width 0.3s ease;"></div>
+                            <div id="win-rate-bar" style="width: 50%; background-color: hsl(60, 70%, 45%); transition: width 0.3s ease, background-color 0.3s ease;"></div>
                         </div>
                     </div>
 
@@ -102,8 +98,6 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/midi-player-js@2.0.16/build/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.10.8/dist/soundfont-player.min.js"></script>
     <script src="js/chess.js"></script>
     <script src="js/chessboard.js"></script>
     <script src="js/engine.js"></script>
