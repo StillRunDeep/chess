@@ -20,6 +20,7 @@ class ChessboardUI {
         this.selectedPiece = null;
         this.highlightedSquares = [];
         this.lastMove = null;
+        this.hintSquares = null;
         this.flipped = this.options.orientation === 'black';
         
         // 初始化棋盘
@@ -53,10 +54,12 @@ class ChessboardUI {
     clearBoard() {
         this.selectedPiece = null;
         this.highlightedSquares = [];
+        this.hintSquares = null;
     }
 
     // 根据引擎的棋盘状态更新UI
     updateBoard(board) {
+        this.clearHint();
         const squares = this.containerElement.querySelectorAll('.square');
         
         // 移除所有棋子
@@ -275,6 +278,45 @@ class ChessboardUI {
             });
             
             this.lastMove = null;
+        }
+    }
+
+    // 高亮提示移动
+    showHint(fromRow, fromCol, toRow, toCol) {
+        this.clearHint();
+        
+        const displayFromRow = this.flipped ? 7 - fromRow : fromRow;
+        const displayFromCol = this.flipped ? 7 - fromCol : fromCol;
+        const displayToRow = this.flipped ? 7 - toRow : toRow;
+        const displayToCol = this.flipped ? 7 - toCol : toCol;
+        
+        const fromSquare = this.getSquareElement(displayFromRow, displayFromCol);
+        const toSquare = this.getSquareElement(displayToRow, displayToCol);
+        
+        if (fromSquare) {
+            fromSquare.classList.add('hint-move');
+            this.hintSquares = [fromSquare];
+        }
+        
+        if (toSquare) {
+            toSquare.classList.add('hint-move');
+            if (this.hintSquares) {
+                this.hintSquares.push(toSquare);
+            } else {
+                this.hintSquares = [toSquare];
+            }
+        }
+    }
+
+    // 清除提示高亮
+    clearHint() {
+        if (this.hintSquares) {
+            this.hintSquares.forEach(square => {
+                if (square) {
+                    square.classList.remove('hint-move');
+                }
+            });
+            this.hintSquares = null;
         }
     }
 
