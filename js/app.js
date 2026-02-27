@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化AI
     const ai = new ChessAI('medium');
     
+    // 玩家当前控制的棋子颜色 (w: 白方, b: 黑方)
+    let playerColor = 'w';
+    
     // 胜率更新 UI 处理
     const winRateText = document.getElementById('win-rate-text');
     const winRateBar = document.getElementById('win-rate-bar');
@@ -76,9 +79,28 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('new-game').addEventListener('click', newGame);
     document.getElementById('undo-move').addEventListener('click', undoMove);
     document.getElementById('play-again').addEventListener('click', newGame);
+    document.getElementById('swap-sides').addEventListener('click', swapSides);
     document.getElementById('difficulty-select').addEventListener('change', function(e) {
         ai.setDifficulty(e.target.value);
     });
+
+    /**
+     * 交换控制的棋子颜色
+     */
+    function swapSides() {
+        if (isAIThinking) return;
+        playerColor = playerColor === 'w' ? 'b' : 'w';
+        
+        // 更新状态以反映交换
+        if (isEngineReady) {
+            document.getElementById('status').textContent = engine.getGameStatusText();
+        }
+        
+        // 如果交换后是AI的回合，则让AI走棋
+        if (!engine.gameOver && engine.currentPlayer !== playerColor) {
+            makeAIMove();
+        }
+    }
     
     // 背景音乐控制
     const bgmAudio = document.getElementById('bgm-audio');
@@ -127,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function showHintIfReady() {
-        if (!isHintEnabled || engine.currentPlayer === 'b' || engine.gameOver || isAIThinking) return;
+        if (!isHintEnabled || engine.currentPlayer !== playerColor || engine.gameOver || isAIThinking) return;
         if (currentBestMoveForHint) {
             const [fromRow, fromCol, toRow, toCol] = currentBestMoveForHint;
             chessboard.showHint(fromRow, fromCol, toRow, toCol);
@@ -137,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetHintTimer() {
         clearHint(); 
         isHintTimerTriggered = false;
-        if (!isHintEnabled || engine.currentPlayer === 'b' || engine.gameOver || isAIThinking) return;
+        if (!isHintEnabled || engine.currentPlayer !== playerColor || engine.gameOver || isAIThinking) return;
         
         hintTimer = setTimeout(() => {
             isHintTimerTriggered = true;
@@ -171,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isAIThinking) return;
         
         // 如果当前是AI的回合，不允许操作
-        if (engine.currentPlayer === 'b') return;
+        if (engine.currentPlayer !== playerColor) return;
         
         // 重置提示定时器
         resetHintTimer();
@@ -215,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isAIThinking) return;
         
         // 如果当前是AI的回合，不允许操作
-        if (engine.currentPlayer === 'b') return;
+        if (engine.currentPlayer !== playerColor) return;
         
         // 重置提示定时器
         resetHintTimer();
@@ -262,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isAIThinking) return false;
         
         // 如果当前是AI的回合，不允许操作
-        if (engine.currentPlayer === 'b') return false;
+        if (engine.currentPlayer !== playerColor) return false;
         
         // 重置提示定时器
         resetHintTimer();
@@ -330,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 如果轮到AI走棋
-            if (engine.currentPlayer === 'b') {
+            if (engine.currentPlayer !== playerColor) {
                 clearHint();
                 makeAIMove();
             } else {
@@ -377,6 +399,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * 开始新游戏
      */
     function newGame() {
+        // 重置玩家颜色为白方
+        playerColor = 'w';
+        
         // 重置引擎
         engine.reset();
         
@@ -464,7 +489,8 @@ document.addEventListener('DOMContentLoaded', function() {
         isAIThinking = true;
         
         // 更新状态文本
-        document.getElementById('status').textContent = '黑方(AI)正在思考...';
+        const aiColorText = engine.currentPlayer === 'w' ? '白方' : '黑方';
+        document.getElementById('status').textContent = `${aiColorText}(AI)正在思考...`;
         
         // 使用setTimeout让UI有时间更新
         setTimeout(() => {
