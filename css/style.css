@@ -216,15 +216,28 @@ select.control-btn {
 
 .captured-pieces {
     margin-bottom: 20px;
-    font-weight: bold;
 }
 
 .white-captured, .black-captured {
     margin-bottom: 8px;
-    padding: 8px;
+    padding: 8px 12px;
     background-color: var(--light-color);
     border-radius: 5px;
-    min-height: 38px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--dark-color);
+}
+
+.captured-symbol {
+    font-size: 1.4rem;
+    line-height: 1;
+    font-family: "Apple Color Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+    vertical-align: middle;
 }
 
 .move-history-collapsible {

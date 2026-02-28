@@ -567,15 +567,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const whiteCaptured = document.querySelector('.white-captured');
         const blackCaptured = document.querySelector('.black-captured');
         
-        whiteCaptured.textContent = '白方吃子：' + formatCapturedPieces(engine.capturedPieces.w);
-        blackCaptured.textContent = '黑方吃子：' + formatCapturedPieces(engine.capturedPieces.b);
+        whiteCaptured.innerHTML = '白方吃子：' + formatCapturedPieces(engine.capturedPieces.w);
+        blackCaptured.innerHTML = '黑方吃子：' + formatCapturedPieces(engine.capturedPieces.b);
     }
     
     /**
      * 格式化被吃掉的棋子
      */
     function formatCapturedPieces(capturedPieces) {
-        if (capturedPieces.length === 0) return '无';
+        if (capturedPieces.length === 0) return '<span style="font-weight: normal; opacity: 0.6;">无</span>';
         
         // 使用符号表示棋子
         const pieceSymbols = {
@@ -583,7 +583,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'bP': '♟', 'bR': '♜', 'bN': '♞', 'bB': '♝', 'bQ': '♛', 'bK': '♚'
         };
         
-        return capturedPieces.map(piece => pieceSymbols[piece] || piece).join(' ');
+        return capturedPieces.map(piece => {
+            const symbol = pieceSymbols[piece] || piece;
+            return `<span class="captured-symbol">${symbol}</span>`;
+        }).join('');
     }
     
     /**
