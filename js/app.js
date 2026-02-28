@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let legalMoves = [];
     let isAIThinking = false;
     let isEngineReady = false;
+    let isFirstMoveEver = true; // 记录是否为全场第一次走子
     
     // 初始化引擎状态
     document.getElementById('status').textContent = '正在加载AI引擎...';
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hintTimer = setTimeout(() => {
             isHintTimerTriggered = true;
             showHintIfReady();
-        }, 3000);
+        }, 6000);
     }
 
     function clearHint() {
@@ -331,11 +332,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // 更新UI
             updateUI();
             
-            // 如果是第一步棋且音乐未播放，则自动开启
-            if (engine.moveHistory.length === 1 && !isBgmPlaying) {
+            // 仅在全场第一场对局的第一步棋且音乐未播放时，自动开启
+            if (isFirstMoveEver && engine.moveHistory.length === 1 && !isBgmPlaying) {
                 isBgmPlaying = true;
                 bgmToggle.textContent = '🎵 关闭音乐';
                 playCurrentAudio();
+                isFirstMoveEver = false; // 标记已触发过首次自动播放
             }
             
             // 重置选择状态
@@ -615,6 +617,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 moveBlackSpan.className = 'move-black';
                 
                 movesElement.appendChild(moveBlackSpan);
+            } else {
+                const emptySpan = document.createElement('span');
+                movesElement.appendChild(emptySpan);
             }
         }
         

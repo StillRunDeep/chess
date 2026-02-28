@@ -9,27 +9,35 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>国际象棋</h1>
-            <div class="mode-selection">
-                <span style="color: white; margin-right: 10px; font-weight: bold;">人机对战</span>
-                <select id="difficulty-select" style="padding: 10px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer; margin-right: 10px;">
-                    <option value="level1">等级 1: 极简 (深度 1)</option>
-                    <option value="level2">等级 2: 入门 (深度 2)</option>
-                    <option value="level3">等级 3: 简单 (深度 4)</option>
-                    <option value="level4" selected>等级 4: 中等 (深度 6)</option>
-                    <option value="level5">等级 5: 进阶 (深度 8)</option>
-                    <option value="level6">等级 6: 困难 (深度 12)</option>
-                    <option value="level7">等级 7: 专家 (深度 16)</option>
-                    <option value="level8">等级 8: 大师 (深度 20)</option>
-                </select>
-                <button id="bgm-toggle" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer; margin-right: 10px;">🎵 开启音乐</button>
-                <button id="hint-toggle" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--secondary-color); background-color: var(--light-color); color: var(--dark-color); cursor: pointer;">💡 开启提示</button>
+        <main>
+            <div class="top-controls">
+                <div class="control-row">
+                    <select id="difficulty-select" class="control-btn">
+                        <option value="level1">等级 1: 极简 (深度 1)</option>
+                        <option value="level2">等级 2: 入门 (深度 2)</option>
+                        <option value="level3">等级 3: 简单 (深度 4)</option>
+                        <option value="level4" selected>等级 4: 中等 (深度 6)</option>
+                        <option value="level5">等级 5: 进阶 (深度 8)</option>
+                        <option value="level6">等级 6: 困难 (深度 12)</option>
+                        <option value="level7">等级 7: 专家 (深度 16)</option>
+                        <option value="level8">等级 8: 大师 (深度 20)</option>
+                    </select>
+                    <div class="button-group">
+                        <button id="new-game" class="control-btn">新游戏</button>
+                        <button id="undo-move" class="control-btn">悔棋</button>
+                        <button id="swap-sides" class="control-btn">交换</button>
+                    </div>
+                </div>
+                <div class="control-row">
+                    <div id="status" class="status-bar">白方走棋</div>
+                    <div class="button-group">
+                        <button id="bgm-toggle" class="control-btn">🎵 开启音乐</button>
+                        <button id="hint-toggle" class="control-btn">💡 开启提示</button>
+                    </div>
+                </div>
                 <audio id="bgm-audio" src="sound/Canon.mp3" loop></audio>
             </div>
-        </header>
 
-        <main>
             <div class="game-container">
                 <div class="board-container">
                     <div id="chessboard"></div>
@@ -45,16 +53,15 @@
                     </div>
                 </div>
 
-                <div class="game-info">
-                    <div id="status">白方走棋</div>
-                    
+                <div class="bottom-info">
                     <!-- 胜率显示 -->
-                    <div class="win-rate-container" style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 5px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9em; font-weight: bold;">
-                            <span>白方胜率 <span id="mate-text" style="color: #e74c3c; margin-left: 10px; display: none;"></span></span>
+                    <div class="win-rate-container">
+                        <div class="win-rate-header">
+                            <span class="win-rate-side">白方 <span id="mate-text" style="color: #e74c3c; margin-left: 5px; display: none;"></span></span>
                             <span id="win-rate-text">50.0%</span>
+                            <span class="win-rate-side">黑方</span>
                         </div>
-                        <div style="height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; display: flex;">
+                        <div class="win-rate-bar-bg">
                             <div id="win-rate-bar" style="width: 50%; background-color: hsl(60, 70%, 45%); transition: width 0.3s ease, background-color 0.3s ease;"></div>
                         </div>
                     </div>
@@ -63,15 +70,13 @@
                         <div class="white-captured">白方吃子：</div>
                         <div class="black-captured">黑方吃子：</div>
                     </div>
-                    <div class="move-history">
-                        <h3>走棋记录</h3>
-                        <div id="moves"></div>
-                    </div>
-                    <div class="controls">
-                        <button id="new-game">新游戏</button>
-                        <button id="undo-move">悔棋</button>
-                        <button id="swap-sides">交换</button>
-                    </div>
+                    
+                    <details class="move-history-collapsible">
+                        <summary>走棋记录 (点击展开/收起)</summary>
+                        <div class="move-history">
+                            <div id="moves"></div>
+                        </div>
+                    </details>
                 </div>
             </div>
         </main>
@@ -103,6 +108,6 @@
     <script src="js/chess.js"></script>
     <script src="js/chessboard.js"></script>
     <script src="js/engine.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=1.14"></script>
 </body>
-</html> 
+</html>
