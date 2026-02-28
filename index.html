@@ -10,36 +10,9 @@
 </head>
 <body>
     <div class="container">
-        <main>
-            <div class="top-controls">
-                <div class="control-row">
-                    <select id="difficulty-select" class="control-btn">
-                        <option value="level1">等级 1: 极简 (深度 1)</option>
-                        <option value="level2">等级 2: 入门 (深度 2)</option>
-                        <option value="level3">等级 3: 简单 (深度 4)</option>
-                        <option value="level4" selected>等级 4: 中等 (深度 6)</option>
-                        <option value="level5">等级 5: 进阶 (深度 8)</option>
-                        <option value="level6">等级 6: 困难 (深度 12)</option>
-                        <option value="level7">等级 7: 专家 (深度 16)</option>
-                        <option value="level8">等级 8: 大师 (深度 20)</option>
-                    </select>
-                    <div class="button-group">
-                        <button id="new-game" class="control-btn">新游戏</button>
-                        <button id="undo-move" class="control-btn">悔棋</button>
-                        <button id="swap-sides" class="control-btn">交换</button>
-                    </div>
-                </div>
-                <div class="control-row">
-                    <div id="status" class="status-bar">白方走棋</div>
-                    <div class="button-group">
-                        <button id="bgm-toggle" class="control-btn toggle-btn">背景音乐</button>
-                        <button id="hint-toggle" class="control-btn toggle-btn">AI提示</button>
-                    </div>
-                </div>
-                <audio id="bgm-audio" src="sound/Canon.mp3" loop></audio>
-            </div>
-
-            <div class="game-container">
+        <main class="main-layout">
+            <!-- 棋盘区 -->
+            <div class="board-section">
                 <div class="board-container">
                     <div id="chessboard"></div>
                     <div class="board-labels">
@@ -53,9 +26,39 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- 右侧面板 (在竖屏下通过 display: contents 使其子元素直接参与布局排序) -->
+            <div class="side-panel">
+                <div class="top-controls">
+                    <div class="control-row">
+                        <div id="status" class="status-bar">白方走棋</div>
+                        <div class="button-group">
+                            <button id="new-game" class="control-btn">新游戏</button>
+                            <button id="undo-move" class="control-btn">悔棋</button>
+                            <button id="swap-sides" class="control-btn">交换</button>
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <select id="difficulty-select" class="control-btn">
+                            <option value="level1">等级 1: 极简 (深度 1)</option>
+                            <option value="level2">等级 2: 入门 (深度 2)</option>
+                            <option value="level3">等级 3: 简单 (深度 4)</option>
+                            <option value="level4" selected>等级 4: 中等 (深度 6)</option>
+                            <option value="level5">等级 5: 进阶 (深度 8)</option>
+                            <option value="level6">等级 6: 困难 (深度 12)</option>
+                            <option value="level7">等级 7: 专家 (深度 16)</option>
+                            <option value="level8">等级 8: 大师 (深度 20)</option>
+                        </select>
+                        <div class="button-group">
+                            <button id="bgm-toggle" class="control-btn toggle-btn">背景音乐</button>
+                            <button id="hint-toggle" class="control-btn toggle-btn">AI提示</button>
+                        </div>
+                    </div>
+                    <audio id="bgm-audio" src="sound/Canon.mp3" loop></audio>
+                </div>
 
                 <div class="bottom-info">
-                    <!-- 胜率显示 -->
                     <div class="win-rate-container">
                         <div class="win-rate-header">
                             <span class="win-rate-side">白方 <span id="mate-text" style="color: #e74c3c; margin-left: 5px; display: none;"></span></span>
@@ -109,6 +112,6 @@
     <script src="js/chess.js"></script>
     <script src="js/chessboard.js"></script>
     <script src="js/engine.js"></script>
-    <script src="js/app.js?v=1.28"></script>
+    <script src="js/app.js?v=1.36"></script>
 </body>
 </html>

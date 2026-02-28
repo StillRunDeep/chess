@@ -26,13 +26,32 @@ body {
     padding: 10px;
 }
 
-header {
-    text-align: center;
-    margin-bottom: 20px;
+/* ---------------------------------------------------
+   基础布局：竖屏模式 (Portrait)
+   --------------------------------------------------- */
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
 }
 
-h1 {
-    color: var(--primary-color);
+/* 竖屏下让侧边栏容器在视觉上“消失”，使其子元素直接参与 Flex 排序 */
+.side-panel {
+    display: contents; 
+}
+
+/* 强制视觉顺序：按钮(顶部) -> 棋盘(中部) -> 信息(底部) */
+.top-controls {
+    order: -1; 
+}
+
+.board-section {
+    order: 0;
+}
+
+.bottom-info {
+    order: 1;
 }
 
 .top-controls {
@@ -41,15 +60,13 @@ h1 {
     justify-content: center;
     align-items: center;
     gap: 8px;
-    margin-bottom: 20px;
     background-color: var(--secondary-color);
     padding: 10px;
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: calc(var(--board-size) + 25px);
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 auto; /* 竖屏下居中 */
 }
 
 .control-row {
@@ -148,14 +165,6 @@ select.control-btn {
     background-size: 10px auto;
 }
 
-.game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    width: 100%;
-}
-
 .board-container {
     position: relative;
     width: calc(var(--board-size) + 25px);
@@ -164,7 +173,7 @@ select.control-btn {
 }
 
 #chessboard {
-    margin-left: 25px; /* 核心修复：强制推开棋盘，为左侧数字留出物理空间 */
+    margin-left: 25px;
 }
 
 .board-labels {
@@ -178,7 +187,7 @@ select.control-btn {
 
 .file-labels {
     position: absolute;
-    top: var(--board-size); /* 紧跟在棋盘高度之后 */
+    top: var(--board-size);
     left: 25px; 
     width: var(--board-size);
     height: 20px;
@@ -222,6 +231,7 @@ select.control-btn {
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 auto; /* 竖屏下居中 */
 }
 
 .win-rate-container {
@@ -393,6 +403,64 @@ footer a:hover {
     text-decoration: underline;
 }
 
+/* ---------------------------------------------------
+   横屏模式专用布局（Landscape）
+   --------------------------------------------------- */
+@media (orientation: landscape) and (min-height: 400px) {
+    .container {
+        max-width: 1400px;
+        padding: 20px;
+    }
+
+    .main-layout {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 50px;
+    }
+
+    /* 横屏下恢复侧边栏容器，使按钮和信息紧密贴合 */
+    .side-panel {
+        display: flex; 
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+        max-width: 480px; 
+        max-height: 85vh;
+        overflow-y: auto;
+        padding-right: 15px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--secondary-color) transparent;
+    }
+
+    /* 侧边栏子元素不再需要独立排序 */
+    .top-controls, .board-section, .bottom-info {
+        order: unset;
+    }
+
+    .top-controls, .bottom-info {
+        width: 100%;
+        max-width: 480px;
+        margin: 0;
+    }
+
+    /* 重新计算横屏棋盘大小 */
+    :root {
+        --board-size: min(580px, 72vh);
+    }
+
+    .side-panel::-webkit-scrollbar {
+        width: 6px;
+    }
+    .side-panel::-webkit-scrollbar-thumb {
+        background-color: var(--secondary-color);
+        border-radius: 3px;
+    }
+}
+
+/* ---------------------------------------------------
+   响应式调整
+   --------------------------------------------------- */
 @media (max-width: 800px) {
     :root {
         --board-size: min(620px, 82vw);
@@ -461,7 +529,7 @@ footer a:hover {
     }
 
     #chessboard {
-        margin-left: 20px; /* 移动端同步推开 20px */
+        margin-left: 20px; 
     }
 
     .file-labels {
