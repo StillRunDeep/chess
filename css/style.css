@@ -160,8 +160,11 @@ select.control-btn {
     position: relative;
     width: calc(var(--board-size) + 25px);
     height: calc(var(--board-size) + 25px);
-    /* 核心调整：向左平移坐标宽度的一半(12.5px)，使棋盘格子区域绝对居中 */
     transform: translateX(-12.5px); 
+}
+
+#chessboard {
+    margin-left: 25px; /* 核心修复：强制推开棋盘，为左侧数字留出物理空间 */
 }
 
 .board-labels {
@@ -452,11 +455,13 @@ footer a:hover {
     }
 
     .board-container {
-        padding-left: 20px;
-        padding-bottom: 20px;
         width: calc(var(--board-size) + 20px);
         height: calc(var(--board-size) + 20px);
-        transform: translateX(-10px); /* 移动端平移 10px */
+        transform: translateX(-10px);
+    }
+
+    #chessboard {
+        margin-left: 20px; /* 移动端同步推开 20px */
     }
 
     .file-labels {
