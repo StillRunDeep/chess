@@ -121,14 +121,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     bgmToggle.addEventListener('click', function() {
+        isBgmPlaying = !isBgmPlaying;
+        bgmToggle.classList.toggle('active', isBgmPlaying);
         if (isBgmPlaying) {
-            pauseCurrentAudio();
-            bgmToggle.textContent = '🎵 开启音乐';
-            isBgmPlaying = false;
-        } else {
-            isBgmPlaying = true;
-            bgmToggle.textContent = '🎵 关闭音乐';
             playCurrentAudio();
+        } else {
+            pauseCurrentAudio();
         }
     });
 
@@ -141,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const hintToggle = document.getElementById('hint-toggle');
     hintToggle.addEventListener('click', function() {
         isHintEnabled = !isHintEnabled;
-        hintToggle.textContent = isHintEnabled ? '💡 关闭提示' : '💡 开启提示';
+        hintToggle.classList.toggle('active', isHintEnabled);
         if (isHintEnabled) {
             resetHintTimer();
         } else {
@@ -335,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 仅在全场第一场对局的第一步棋且音乐未播放时，自动开启
             if (isFirstMoveEver && engine.moveHistory.length === 1 && !isBgmPlaying) {
                 isBgmPlaying = true;
-                bgmToggle.textContent = '🎵 关闭音乐';
+                bgmToggle.classList.add('active');
                 playCurrentAudio();
                 isFirstMoveEver = false; // 标记已触发过首次自动播放
             }

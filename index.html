@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>国际象棋 - 人机对战</title>
+    <title>国际象棋教学</title>
+    <link rel="icon" type="image/svg+xml" href="images/wK.svg">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/chessboard.css">
 </head>
@@ -31,8 +32,8 @@
                 <div class="control-row">
                     <div id="status" class="status-bar">白方走棋</div>
                     <div class="button-group">
-                        <button id="bgm-toggle" class="control-btn">🎵 开启音乐</button>
-                        <button id="hint-toggle" class="control-btn">💡 开启提示</button>
+                        <button id="bgm-toggle" class="control-btn toggle-btn">背景音乐</button>
+                        <button id="hint-toggle" class="control-btn toggle-btn">AI提示</button>
                     </div>
                 </div>
                 <audio id="bgm-audio" src="sound/Canon.mp3" loop></audio>
@@ -108,6 +109,6 @@
     <script src="js/chess.js"></script>
     <script src="js/chessboard.js"></script>
     <script src="js/engine.js"></script>
-    <script src="js/app.js?v=1.16"></script>
+    <script src="js/app.js?v=1.22"></script>
 </body>
 </html>
