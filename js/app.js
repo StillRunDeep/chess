@@ -64,11 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果游戏还没开始（或者没人在走棋），则更新状态
         if (!isAIThinking) {
             document.getElementById('status').textContent = engine.getGameStatusText();
-            currentBestMoveForHint = null;
-            ai.getBestMove(engine).then(move => {
-                currentBestMoveForHint = move;
-                if (isHintTimerTriggered) showHintIfReady();
-            });
+            // 在引擎准备好时进行一次初始评估，并开始提示计时器
+            ai.getBestMove(engine, ai.getDifficulty(), null, true); // 使用虚拟时钟进行评估
             resetHintTimer();
         }
     };
@@ -149,19 +146,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showHintIfReady() {
         if (!isHintEnabled || engine.currentPlayer !== playerColor || engine.gameOver || isAIThinking) return;
-        if (currentBestMoveForHint) {
-            const [fromRow, fromCol, toRow, toCol] = currentBestMoveForHint;
-            chessboard.showHint(fromRow, fromCol, toRow, toCol);
-        }
+
+        isAIThinking = true;
+        document.getElementById('status').textContent = 'AI正在为您计算最佳提示...';
+        
+        // 终极修复：使用动态时钟管理，让AI在复杂局面投入更多时间
+        ai.getBestMove(engine, null, null, true).then(move => {
+            if (move) {
+                const [fromRow, fromCol, toRow, toCol] = move;
+                chessboard.showHint(fromRow, fromCol, toRow, toCol);
+            }
+            isAIThinking = false;
+            document.getElementById('status').textContent = engine.getGameStatusText();
+        });
     }
 
     function resetHintTimer() {
         clearHint(); 
-        isHintTimerTriggered = false;
         if (!isHintEnabled || engine.currentPlayer !== playerColor || engine.gameOver || isAIThinking) return;
         
         hintTimer = setTimeout(() => {
-            isHintTimerTriggered = true;
             showHintIfReady();
         }, 6000);
     }
@@ -347,7 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 检查游戏是否结束
             if (engine.gameOver) {
-                showGameOverDialog();
+                document.getElementById('game-over-modal').style.display = 'none'; // 确保隐藏模态框
+                document.getElementById('status').textContent = engine.getGameStatusText();
                 return true;
             }
             
@@ -356,13 +361,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearHint();
                 makeAIMove();
             } else {
-                // 如果是玩家走完，进行一次静默评估以更新胜率
-                currentBestMoveForHint = null;
-                const hintDepth = Math.max(ai.getDifficulty(), 6); // 提示深度至少为 6 或当前难度
-                ai.getBestMove(engine, hintDepth).then(move => {
-                    currentBestMoveForHint = move;
-                    if (isHintTimerTriggered) showHintIfReady();
-                });
+                // 玩家走完后，更新胜率并重置提示计时器
+                ai.getBestMove(engine, ai.getDifficulty(), null, true); // 使用虚拟时钟更新胜率
+                startHintPreCalculation(); 
                 resetHintTimer();
             }
             
@@ -424,14 +425,8 @@ document.addEventListener('DOMContentLoaded', function() {
         winRateBar.style.width = '50%';
         winRateBar.style.backgroundColor = 'hsl(60, 70%, 45%)';
         mateText.style.display = 'none';
-        currentBestMoveForHint = null;
-        if (isEngineReady) {
-            ai.getBestMove(engine).then(move => {
-                currentBestMoveForHint = move;
-                if (isHintTimerTriggered) showHintIfReady();
-            });
-            resetHintTimer();
-        }
+        ai.getBestMove(engine, ai.getDifficulty(), null, true); // 使用虚拟时钟进行评估
+        resetHintTimer();
     }
     
     /**
@@ -466,12 +461,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 刷新胜率
-        currentBestMoveForHint = null;
         if (isEngineReady) {
-            ai.getBestMove(engine).then(move => {
-                currentBestMoveForHint = move;
-                if (isHintTimerTriggered) showHintIfReady();
-            });
+            ai.getBestMove(engine, ai.getDifficulty(), null, true); // 使用虚拟时钟进行评估
             resetHintTimer();
         } else {
             winRateText.textContent = '50.0%';
@@ -524,14 +515,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // 重置AI思考标志
                     isAIThinking = false;
                     
-                    // AI走完后轮到玩家走棋，开启静默评估和提示计时器
+                    // AI走完后轮到玩家走棋，更新胜率并开启提示计时器
                     if (!engine.gameOver) {
-                        currentBestMoveForHint = null;
-                        ai.getBestMove(engine).then(move => {
-                            currentBestMoveForHint = move;
-                            if (isHintTimerTriggered) showHintIfReady();
-                        });
-                        resetHintTimer();
+                        ai.getBestMove(engine, ai.getDifficulty(), null, true); // 使用虚拟时钟更新胜率
+                        startHintPreCalculation(); 
+                resetHintTimer();
                     }
                 }, remainingDelay);
             });

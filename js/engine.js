@@ -7,14 +7,15 @@ class ChessAI {
         this.setDifficulty(difficulty);
         
         // 初始化 Stockfish Worker
-        // 使用相对当前页面的绝对路径解析，以防 GitHub Pages 子目录访问时缺少斜杠导致的 404 错误
         this.worker = new Worker(new URL('js/stockfish.js', document.baseURI || window.location.href));
         this.worker.postMessage('uci');
+        this.worker.postMessage('setoption name MultiPV value 3'); // 启用多路分析以提升残局视野
         
         this.ready = false;
-        this.callbacks = [];
-        this.onEvaluationUpdate = null; // 胜率更新回调
-        this.sideToMove = 'w'; // 默认为白方
+        this.bestMoves = []; 
+        this.isThinking = false;
+        this.onEvaluationUpdate = null; 
+        this.sideToMove = 'w'; 
         
         this.worker.onmessage = (event) => {
             const line = event.data;
@@ -23,50 +24,32 @@ class ChessAI {
             if (line === 'uciok') {
                 this.ready = true;
                 if (this.onReady) this.onReady();
-            } else if (line.startsWith('info') && line.includes('score')) {
+            } else if (line.startsWith('info') && line.includes('multipv')) {
+                this.handleMultiPVInfo(line);
+            } else if (line.startsWith('info') && line.includes('score') && !line.includes('multipv')) {
+                // 兼容常规的评估信息
                 this.handleEvaluation(line);
             } else if (line.startsWith('bestmove')) {
-                const match = line.match(/^bestmove ([a-h][1-8][a-h][1-8][qrbn]?)/);
-                if (match) {
-                    const move = match[1];
-                    this.handleBestMove(move);
-                } else {
-                    this.handleBestMove(null); // 没有合法的移动
-                }
+                this.isThinking = false;
+                this.handleBestMoveFallback(line); // 处理备用或常规的bestmove
             }
         };
     }
 
     // 设置AI难度
     setDifficulty(difficulty) {
+        // ... (保持不变)
         switch (difficulty) {
-            case 'level1':
-                this.searchDepth = 1;
-                break;
-            case 'level2':
-                this.searchDepth = 2;
-                break;
-            case 'level3':
-                this.searchDepth = 4;
-                break;
+            case 'level1': this.searchDepth = 1; break;
+            case 'level2': this.searchDepth = 2; break;
+            case 'level3': this.searchDepth = 4; break;
             case 'level4':
-            case 'medium': // 兼容初始默认值
-                this.searchDepth = 6;
-                break;
-            case 'level5':
-                this.searchDepth = 8;
-                break;
-            case 'level6':
-                this.searchDepth = 12;
-                break;
-            case 'level7':
-                this.searchDepth = 16;
-                break;
-            case 'level8':
-                this.searchDepth = 20;
-                break;
-            default:
-                this.searchDepth = 6;
+            case 'medium': this.searchDepth = 6; break;
+            case 'level5': this.searchDepth = 8; break;
+            case 'level6': this.searchDepth = 12; break;
+            case 'level7': this.searchDepth = 16; break;
+            case 'level8': this.searchDepth = 20; break;
+            default: this.searchDepth = 6;
         }
     }
 
@@ -97,37 +80,67 @@ class ChessAI {
     }
 
     // 获取AI建议的最佳移动 (返回 Promise)
-    getBestMove(engine) {
+    getBestMove(engine, depth = null, time = null, useClock = false) {
         return new Promise((resolve) => {
-            if (!this.ready) {
-                // 如果引擎还没有准备好，稍后重试
-                setTimeout(() => {
-                    resolve(this.getBestMove(engine));
-                }, 100);
+            if (!this.ready || this.isThinking) {
+                setTimeout(() => resolve(this.getBestMove(engine, depth, time, useClock)), 100);
                 return;
             }
             
-            this.callbacks.push(resolve);
+            this.isThinking = true;
+            this.bestMoves = []; // 清理缓存
+            this.resolveBestMove = resolve; // 保存回调
             
-            // 记录当前是谁在走棋，以便正确解析胜率（Stockfish 返回的是相对于当前走棋方的分数）
             this.sideToMove = engine.currentPlayer;
-            
             const uciMoves = this.getUciMoves(engine);
-            if (uciMoves.length > 0) {
-                this.worker.postMessage(`position startpos moves ${uciMoves}`);
-            } else {
-                this.worker.postMessage('position startpos');
-            }
+            const positionCmd = uciMoves.length > 0 ? `position startpos moves ${uciMoves}` : 'position startpos';
+            this.worker.postMessage(positionCmd);
             
-            // 开始计算
-            this.worker.postMessage(`go depth ${this.searchDepth}`);
+            let goCmd = 'go';
+            if (useClock) {
+                // 模拟时钟：让AI根据局面复杂度和剩余时间(假设为5分钟)自行决定深度
+                // 这在残局中尤为有效，它会为了解残局投入更多时间
+                goCmd += ` wtime 300000 btime 300000 winc 5000 binc 5000`;
+            } else if (time) {
+                goCmd += ` movetime ${time}`;
+            } else if (depth) {
+                goCmd += ` depth ${depth}`;
+            } else {
+                goCmd += ` depth ${this.searchDepth}`;
+            }
+            this.worker.postMessage(goCmd);
         });
     }
 
-    handleBestMove(uciMove) {
-        const resolve = this.callbacks.shift();
-        if (resolve) {
-            resolve(this.parseUciMove(uciMove));
+    handleMultiPVInfo(line) {
+        const pvMatch = line.match(/multipv (\d+) score (cp|mate) (-?\d+).* pv (.+)/);
+        if (pvMatch) {
+            const pvIndex = parseInt(pvMatch[1]);
+            const moveUci = pvMatch[4].split(' ')[0];
+            // 只保留第一个最佳移动，但要求引擎计算MultiPV以拓宽搜索树
+            if (pvIndex === 1) {
+                this.bestMoves[0] = this.parseUciMove(moveUci);
+            }
+            // 同时可以调用评价函数更新胜率
+            this.handleEvaluation(line);
+        }
+    }
+
+    handleBestMoveFallback(line) {
+        if (this.resolveBestMove) {
+            let finalMove = null;
+            // 优先使用 MultiPV 找到的最好移动
+            if (this.bestMoves.length > 0 && this.bestMoves[0]) {
+                 finalMove = this.bestMoves[0];
+            } else {
+                 // 回退到常规解析
+                 const match = line.match(/^bestmove ([a-h][1-8][a-h][1-8][qrbn]?)/);
+                 if (match) {
+                     finalMove = this.parseUciMove(match[1]);
+                 }
+            }
+            this.resolveBestMove(finalMove);
+            this.resolveBestMove = null;
         }
     }
 
