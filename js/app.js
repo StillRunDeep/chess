@@ -358,7 +358,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // 如果是玩家走完，进行一次静默评估以更新胜率
                 currentBestMoveForHint = null;
-                ai.getBestMove(engine).then(move => {
+                const hintDepth = Math.max(ai.getDifficulty(), 6); // 提示深度至少为 6 或当前难度
+                ai.getBestMove(engine, hintDepth).then(move => {
                     currentBestMoveForHint = move;
                     if (isHintTimerTriggered) showHintIfReady();
                 });
