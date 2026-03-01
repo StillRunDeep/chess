@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // 检查游戏是否结束
                         if (engine.gameOver) {
-                            showGameOverDialog();
+                            document.getElementById('status').textContent = engine.getGameStatusText();
                         }
                     }
                     
@@ -696,13 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * 显示游戏结束对话框
      */
-    function showGameOverDialog() {
-        const gameOverModal = document.getElementById('game-over-modal');
-        const gameResult = document.getElementById('game-result');
-        
-        gameResult.textContent = engine.getGameStatusText();
-        gameOverModal.style.display = 'flex';
-    }
+
 });
 
 /**
