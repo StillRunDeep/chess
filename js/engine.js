@@ -39,34 +39,14 @@ class ChessAI {
 
     // 设置AI难度
     setDifficulty(difficulty) {
-        switch (difficulty) {
-            case 'level1':
-                this.searchDepth = 1;
-                break;
-            case 'level2':
-                this.searchDepth = 2;
-                break;
-            case 'level3':
-                this.searchDepth = 4;
-                break;
-            case 'level4':
-            case 'medium': // 兼容初始默认值
-                this.searchDepth = 6;
-                break;
-            case 'level5':
-                this.searchDepth = 8;
-                break;
-            case 'level6':
-                this.searchDepth = 12;
-                break;
-            case 'level7':
-                this.searchDepth = 16;
-                break;
-            case 'level8':
-                this.searchDepth = 20;
-                break;
-            default:
-                this.searchDepth = 6;
+        if (typeof difficulty === 'string' && difficulty.startsWith('level')) {
+            const level = parseInt(difficulty.replace('level', ''), 10);
+            // 确保 skillLevel 在 0-20 之间
+            this.skillLevel = Math.max(0, Math.min(20, level));
+        } else if (difficulty === 'medium') {
+            this.skillLevel = 9; // 兼容初始默认值
+        } else {
+            this.skillLevel = 1;
         }
     }
 
@@ -97,12 +77,12 @@ class ChessAI {
     }
 
     // 获取AI建议的最佳移动 (返回 Promise)
-    getBestMove(engine) {
+    getBestMove(engine, isHint = false) {
         return new Promise((resolve) => {
             if (!this.ready) {
                 // 如果引擎还没有准备好，稍后重试
                 setTimeout(() => {
-                    resolve(this.getBestMove(engine));
+                    resolve(this.getBestMove(engine, isHint));
                 }, 100);
                 return;
             }
@@ -112,6 +92,13 @@ class ChessAI {
             // 记录当前是谁在走棋，以便正确解析胜率（Stockfish 返回的是相对于当前走棋方的分数）
             this.sideToMove = engine.currentPlayer;
             
+            // 计算当前应使用的 Skill Level (提示时高两级，即增加 6 级，上限 20)
+            let targetSkillLevel = this.skillLevel;
+            if (isHint) {
+                targetSkillLevel = Math.min(20, this.skillLevel + 6);
+            }
+            this.worker.postMessage(`setoption name Skill Level value ${targetSkillLevel}`);
+
             const uciMoves = this.getUciMoves(engine);
             if (uciMoves.length > 0) {
                 this.worker.postMessage(`position startpos moves ${uciMoves}`);
@@ -119,8 +106,8 @@ class ChessAI {
                 this.worker.postMessage('position startpos');
             }
             
-            // 开始计算
-            this.worker.postMessage(`go depth ${this.searchDepth}`);
+            // 开始计算，使用固定的时间替代固定的深度
+            this.worker.postMessage('go movetime 1000');
         });
     }
 

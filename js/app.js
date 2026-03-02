@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const engine = new ChessEngine();
     
     // 初始化AI
-    const ai = new ChessAI('medium');
+    const ai = new ChessAI('level1');
     
     // 玩家当前控制的棋子颜色 (w: 白方, b: 黑方)
     let playerColor = 'w';
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isAIThinking) {
             document.getElementById('status').textContent = engine.getGameStatusText();
             currentBestMoveForHint = null;
-            ai.getBestMove(engine).then(move => {
+            ai.getBestMove(engine, true).then(move => {
                 currentBestMoveForHint = move;
                 if (isHintTimerTriggered) showHintIfReady();
             });
@@ -86,6 +86,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('swap-sides').addEventListener('click', swapSides);
     document.getElementById('difficulty-select').addEventListener('change', function(e) {
         ai.setDifficulty(e.target.value);
+        
+        // 更改背景音乐
+        const level = e.target.value;
+        const audioSrc = level === 'level1' ? 'sound/Canon.mp3' : `sound/${level}.mp3`;
+        
+        if (!bgmAudio.src.endsWith(audioSrc)) {
+            bgmAudio.src = audioSrc;
+            if (isBgmPlaying) {
+                playCurrentAudio();
+            }
+        }
     });
 
     /**
@@ -361,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // 如果是玩家走完，进行一次静默评估以更新胜率
                 currentBestMoveForHint = null;
-                ai.getBestMove(engine).then(move => {
+                ai.getBestMove(engine, true).then(move => {
                     currentBestMoveForHint = move;
                     if (isHintTimerTriggered) showHintIfReady();
                 });
@@ -428,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
         mateText.style.display = 'none';
         currentBestMoveForHint = null;
         if (isEngineReady) {
-            ai.getBestMove(engine).then(move => {
+            ai.getBestMove(engine, true).then(move => {
                 currentBestMoveForHint = move;
                 if (isHintTimerTriggered) showHintIfReady();
             });
@@ -470,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 刷新胜率
         currentBestMoveForHint = null;
         if (isEngineReady) {
-            ai.getBestMove(engine).then(move => {
+            ai.getBestMove(engine, true).then(move => {
                 currentBestMoveForHint = move;
                 if (isHintTimerTriggered) showHintIfReady();
             });
@@ -529,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // AI走完后轮到玩家走棋，开启静默评估和提示计时器
                     if (!engine.gameOver) {
                         currentBestMoveForHint = null;
-                        ai.getBestMove(engine).then(move => {
+                        ai.getBestMove(engine, true).then(move => {
                             currentBestMoveForHint = move;
                             if (isHintTimerTriggered) showHintIfReady();
                         });
