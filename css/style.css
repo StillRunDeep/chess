@@ -555,3 +555,49 @@ footer a:hover {
         width: 105px;
     }
 }
+
+/* Game Over Modal Button Styles */
+.modal-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 15px !important;
+    margin-top: 25px !important;
+    width: 100% !important;
+}
+
+#game-over-modal button {
+    display: block !important;
+    width: 180px !important; /* Fixed width for consistency */
+    padding: 12px 0 !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: background-color 0.2s, transform 0.1s !important;
+    text-align: center !important;
+    margin: 0 auto !important; /* Center the buttons within the column */
+}
+
+#game-over-modal #play-again {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+#game-over-modal #play-again:hover {
+    background-color: var(--accent-color) !important;
+}
+
+#game-over-modal #review-game {
+    background-color: var(--secondary-color) !important;
+    color: var(--dark-color) !important;
+}
+
+#game-over-modal #review-game:hover {
+    background-color: #bdc7a9 !important;
+}
+
+#game-over-modal button:active {
+    transform: scale(0.98) !important;
+}

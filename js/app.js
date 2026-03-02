@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('new-game').addEventListener('click', newGame);
     document.getElementById('undo-move').addEventListener('click', undoMove);
     document.getElementById('play-again').addEventListener('click', newGame);
+    document.getElementById('review-game').addEventListener('click', function() {
+        document.getElementById('game-over-modal').style.display = 'none';
+    });
     document.getElementById('swap-sides').addEventListener('click', swapSides);
     document.getElementById('difficulty-select').addEventListener('change', function(e) {
         ai.setDifficulty(e.target.value);
