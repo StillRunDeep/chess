@@ -145,49 +145,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 提示功能状态
-    let isHintEnabled = false;
-    let hintTimer = null;
-    let isHintTimerTriggered = false;
-    let currentBestMoveForHint = null;
-
     const hintToggle = document.getElementById('hint-toggle');
+    let hintCount = 9;
+
+    function updateHintButtonText() {
+        hintToggle.textContent = `AI提示 (剩余${hintCount}次)`;
+    }
+    updateHintButtonText(); // 初始化按钮文本
+
     hintToggle.addEventListener('click', function() {
-        isHintEnabled = !isHintEnabled;
-        hintToggle.classList.toggle('active', isHintEnabled);
-        if (isHintEnabled) {
-            resetHintTimer();
+        chessboard.clearHint();
+        
+        // 阻止在AI思考、游戏结束或非玩家回合时使用提示
+        if (isAIThinking || engine.gameOver || engine.currentPlayer !== playerColor) {
+            return;
+        }
+
+        if (hintCount > 0) {
+            hintToggle.disabled = true;
+            hintToggle.textContent = '思考中...';
+
+            ai.getBestMove(engine, true).then(move => {
+                if (move) {
+                    const [fromRow, fromCol, toRow, toCol] = move;
+                    chessboard.showHint(fromRow, fromCol, toRow, toCol);
+                    
+                    hintCount--;
+                    updateHintButtonText();
+                }
+                hintToggle.disabled = false;
+                
+                // 如果用完最后一次，更新文本但保持按钮可用以显示最终信息
+                if (hintCount === 0) {
+                    updateHintButtonText();
+                }
+            });
         } else {
-            clearHint();
+            alert('桃桃，你想偷懒吗？');
         }
     });
-
-    function showHintIfReady() {
-        if (!isHintEnabled || engine.currentPlayer !== playerColor || engine.gameOver || isAIThinking) return;
-        if (currentBestMoveForHint) {
-            const [fromRow, fromCol, toRow, toCol] = currentBestMoveForHint;
-            chessboard.showHint(fromRow, fromCol, toRow, toCol);
-        }
-    }
-
-    function resetHintTimer() {
-        clearHint(); 
-        isHintTimerTriggered = false;
-        if (!isHintEnabled || engine.currentPlayer !== playerColor || engine.gameOver || isAIThinking) return;
-        
-        hintTimer = setTimeout(() => {
-            isHintTimerTriggered = true;
-            showHintIfReady();
-        }, 6000);
-    }
-
-    function clearHint() {
-        if (hintTimer) {
-            clearTimeout(hintTimer);
-            hintTimer = null;
-        }
-        isHintTimerTriggered = false;
-        chessboard.clearHint();
-    }
     
     // 设置升变模态框事件
     setupPromotionModal();
@@ -208,8 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果当前是AI的回合，不允许操作
         if (engine.currentPlayer !== playerColor) return;
         
-        // 重置提示定时器
-        resetHintTimer();
+        chessboard.clearHint();
 
         // 检查是否是当前玩家的棋子
         const pieceColor = engine.getPieceColor(piece);
@@ -252,8 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果当前是AI的回合，不允许操作
         if (engine.currentPlayer !== playerColor) return;
         
-        // 重置提示定时器
-        resetHintTimer();
+        chessboard.clearHint();
 
         // 如果没有选中棋子，不做任何处理
         if (!selectedPiece) return;
@@ -299,8 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果当前是AI的回合，不允许操作
         if (engine.currentPlayer !== playerColor) return false;
         
-        // 重置提示定时器
-        resetHintTimer();
+        chessboard.clearHint();
 
         // 检查移动是否合法
         if (!engine.isValidMove(fromRow, fromCol, toRow, toCol)) {
@@ -341,6 +334,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const success = engine.makeMove(fromRow, fromCol, toRow, toCol, promotionPiece);
         
         if (success) {
+            chessboard.clearHint();
+            
             // 更新UI
             updateUI();
             
@@ -367,16 +362,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 如果轮到AI走棋
             if (engine.currentPlayer !== playerColor) {
-                clearHint();
                 makeAIMove();
             } else {
                 // 如果是玩家走完，进行一次静默评估以更新胜率
-                currentBestMoveForHint = null;
                 ai.getBestMove(engine, true).then(move => {
-                    currentBestMoveForHint = move;
-                    if (isHintTimerTriggered) showHintIfReady();
+                    // 只更新胜率，不显示提示
                 });
-                resetHintTimer();
             }
             
             return true;
@@ -413,6 +404,11 @@ document.addEventListener('DOMContentLoaded', function() {
      * 开始新游戏
      */
     function newGame() {
+        // 重置提示计数器
+        hintCount = 9;
+        updateHintButtonText();
+        hintToggle.disabled = false;
+        
         // 重置玩家颜色为白方
         playerColor = 'w';
         
@@ -424,6 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         legalMoves = [];
         chessboard.clearSelection();
         chessboard.clearLastMoveHighlight();
+        chessboard.clearHint();
         
         // 更新UI
         updateUI();
@@ -437,13 +434,12 @@ document.addEventListener('DOMContentLoaded', function() {
         winRateBar.style.width = '50%';
         winRateBar.style.backgroundColor = 'hsl(60, 70%, 45%)';
         mateText.style.display = 'none';
-        currentBestMoveForHint = null;
+        
+        // 游戏开始时静默获取一次胜率
         if (isEngineReady) {
             ai.getBestMove(engine, true).then(move => {
-                currentBestMoveForHint = move;
-                if (isHintTimerTriggered) showHintIfReady();
+                 // 只更新胜率，不显示提示
             });
-            resetHintTimer();
         }
     }
     
@@ -469,6 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedPiece = null;
         legalMoves = [];
         chessboard.clearSelection();
+        chessboard.clearHint();
         
         // 如果有最后一步移动，高亮显示
         if (engine.moveHistory.length > 0) {
@@ -479,13 +476,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // 刷新胜率
-        currentBestMoveForHint = null;
         if (isEngineReady) {
             ai.getBestMove(engine, true).then(move => {
-                currentBestMoveForHint = move;
-                if (isHintTimerTriggered) showHintIfReady();
+                // 只更新胜率
             });
-            resetHintTimer();
         } else {
             winRateText.textContent = '50.0%';
             winRateBar.style.width = '50%';
@@ -539,12 +533,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // AI走完后轮到玩家走棋，开启静默评估和提示计时器
                     if (!engine.gameOver) {
-                        currentBestMoveForHint = null;
                         ai.getBestMove(engine, true).then(move => {
-                            currentBestMoveForHint = move;
-                            if (isHintTimerTriggered) showHintIfReady();
+                             // 只更新胜率
                         });
-                        resetHintTimer();
                     }
                 }, remainingDelay);
             });
