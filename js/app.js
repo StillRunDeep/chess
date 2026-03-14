@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let hintCount = 9;
 
     function updateHintButtonText() {
-        hintToggle.textContent = `AI提示 (剩余${hintCount}次)`;
+        hintToggle.textContent = `提示(剩余${hintCount}次)`;
     }
     updateHintButtonText(); // 初始化按钮文本
 
