@@ -128,6 +128,12 @@ class ChessEngine {
             this.setPiece(toRow, toCol, this.currentPlayer + promotionPiece);
         }
 
+        // 保存王车易位权利快照（用于悔棋恢复）
+        const castlingRightsBefore = {
+            w: { kingSide: this.castlingRights.w.kingSide, queenSide: this.castlingRights.w.queenSide },
+            b: { kingSide: this.castlingRights.b.kingSide, queenSide: this.castlingRights.b.queenSide }
+        };
+
         // 更新王车易位权利
         if (this.getPieceType(piece) === 'K') {
             this.castlingRights[this.currentPlayer].kingSide = false;
@@ -151,7 +157,8 @@ class ChessEngine {
             enPassant: enPassantCapture,
             check: false, // 将在稍后检查
             checkmate: false, // 将在稍后检查
-            notation: this.moveToNotation(piece, fromRow, fromCol, toRow, toCol, capturedPiece, enPassantCapture, promotionPiece)
+            notation: this.moveToNotation(piece, fromRow, fromCol, toRow, toCol, capturedPiece, enPassantCapture, promotionPiece),
+            castlingRightsBefore: castlingRightsBefore
         };
 
         // 更新半回合时钟（用于50回合规则）
@@ -798,8 +805,11 @@ class ChessEngine {
             this.enPassantTarget = null;
         }
         
-        // TODO: 恢复王车易位权利和半回合时钟，需要更多历史信息
-        
+        // 恢复王车易位权利
+        if (lastMove.castlingRightsBefore) {
+            this.castlingRights = lastMove.castlingRightsBefore;
+        }
+
         return true;
     }
 

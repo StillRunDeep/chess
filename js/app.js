@@ -448,16 +448,26 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function undoMove() {
         if (engine.moveHistory.length === 0) return;
-        
-        // 需要撤销两步（玩家的和AI的）
-        engine.undoLastMove(); // 撤销AI的移动
-        if (engine.moveHistory.length === 0) {
-            newGame();
-            return;
+
+        // 检查最后一步是谁走的
+        const lastMove = engine.moveHistory[engine.moveHistory.length - 1];
+        const lastMoveColor = engine.getPieceColor(lastMove.piece);
+
+        if (lastMoveColor !== playerColor) {
+            // 最后一步是AI走的（正常情况），先撤销AI的走步
+            engine.undoLastMove();
+            if (engine.moveHistory.length === 0) {
+                newGame();
+                return;
+            }
         }
-        
+        // 最后一步是玩家走的（游戏在玩家走棋后结束），只撤销这一步即可
+
         engine.undoLastMove(); // 撤销玩家的移动
-        
+
+        // 隐藏游戏结束弹窗（如果显示中）
+        document.getElementById('game-over-modal').style.display = 'none';
+
         // 更新UI
         updateUI();
         
