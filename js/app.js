@@ -55,8 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let legalMoves = [];
     let isAIThinking = false;
     let isEngineReady = false;
-    let isFirstMoveEver = true; // 记录是否为全场第一次走子
-    
     // 初始化引擎状态
     document.getElementById('status').textContent = '正在加载AI引擎...';
     ai.onReady = function() {
@@ -338,14 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 更新UI
             updateUI();
-            
-            // 仅在全场第一场对局的第一步棋且音乐未播放时，自动开启
-            if (isFirstMoveEver && engine.moveHistory.length === 1 && !isBgmPlaying) {
-                isBgmPlaying = true;
-                bgmToggle.classList.add('active');
-                playCurrentAudio();
-                isFirstMoveEver = false; // 标记已触发过首次自动播放
-            }
             
             // 重置选择状态
             selectedPiece = null;
